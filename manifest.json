@@ -1,0 +1,27 @@
+{
+    "name": "Classroom Data Manager",
+    "short_name": "Classroom DM",
+    "description": "Extrae datos de Google Classroom para calificar al alumnado de forma eficiente",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#f5f7fa",
+    "theme_color": "#1a73e8",
+    "orientation": "any",
+    "scope": "./",
+    "lang": "es",
+    "categories": ["education", "productivity"],
+    "icons": [
+        {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
