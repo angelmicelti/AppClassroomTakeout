@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classroom-dm-v2';
+const CACHE_NAME = 'classroom-dm-v3';
 
 // Recursos locales y CDN a cachear para uso offline
 const PRECACHE_URLS = [
