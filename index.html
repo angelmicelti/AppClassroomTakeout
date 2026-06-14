@@ -81,10 +81,98 @@
             font-size: 2.5rem;
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
         .header p {
             opacity: 0.9;
             font-size: 1.1rem;
             max-width: 800px;
+        }
+
+        .help-btn {
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .help-btn:hover {
+            background: rgba(255, 255, 255, 0.32);
+            transform: scale(1.1);
+        }
+
+        .help-modal-content {
+            max-width: 680px;
+        }
+
+        .help-section {
+            margin-bottom: 22px;
+        }
+
+        .help-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-section h4 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .help-section h4 i {
+            font-size: 1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .help-section p,
+        .help-section li {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .help-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .help-section ul li {
+            padding: 4px 0 4px 32px;
+            position: relative;
+        }
+
+        .help-section ul li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-size: 0.8rem;
+            top: 7px;
         }
 
         /* Main Layout */
@@ -822,9 +910,89 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1><i class="fas fa-chalkboard-teacher"></i> Classroom Data Manager</h1>
-            <p>Carga, visualiza y exporta datos de Google Classroom. <br>Analiza rúbricas, calificaciones y actividad del curso.</p>
+            <div class="header-top">
+                <div class="header-text">
+                    <h1><i class="fas fa-chalkboard-teacher"></i> Classroom Data Manager</h1>
+                    <p>Carga, visualiza y exporta datos de Google Classroom. <br>Analiza rúbricas, calificaciones y actividad del curso.</p>
+                </div>
+                <button class="help-btn" id="helpBtn" title="Ayuda">
+                    <i class="fas fa-question"></i>
+                </button>
+            </div>
         </header>
+
+        <!-- Modal de Ayuda -->
+        <div class="modal" id="helpModal">
+            <div class="modal-content help-modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-circle-info"></i> Ayuda - Classroom Data Manager</h3>
+                    <button class="close-modal" id="closeHelpModal"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-upload"></i> Cargar datos</h4>
+                    <p>Arrastra o selecciona un archivo <strong>JSON</strong> exportado desde <strong>Google Takeout</strong> (sección Classroom). La aplicación procesará automáticamente cursos, estudiantes, tareas, rúbricas y entregas.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-chart-line"></i> Resumen General</h4>
+                    <p>Panel inicial con tarjetas estadísticas: número de cursos, estudiantes, tareas, rúbricas y entregas. Incluye gráficos de distribución de calificaciones y actividad reciente del curso.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-users"></i> Estudiantes</h4>
+                    <ul>
+                        <li>Consulta la lista completa de alumnos con su información de perfil.</li>
+                        <li>Busca estudiantes por nombre rápidamente.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-tasks"></i> Tareas</h4>
+                    <ul>
+                        <li>Visualiza todas las tareas del curso con su estado y fechas.</li>
+                        <li>Consulta los detalles de cada tarea incluyendo descripción y materiales.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-clipboard-check"></i> Rúbricas</h4>
+                    <p>Explora las rúbricas de evaluación asociadas a cada tarea. Cada rúbrica muestra criterios, niveles de logro y puntuaciones definidas por el docente.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-star-half-alt"></i> Evaluaciones</h4>
+                    <p>Accede al panel de evaluación con las rúbricas cargadas. Selecciona un alumno, introduce las puntuaciones por criterio y la aplicación calculará automáticamente la calificación final ponderada.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-file-upload"></i> Entregas</h4>
+                    <ul>
+                        <li>Revisa las entregas de los estudiantes con fecha, estado y contenido.</li>
+                        <li>Filtra entregas por estado (pendiente, entregada, calificada, devuelta).</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-star"></i> Calificaciones</h4>
+                    <p>Tabla resumen con todas las calificaciones registradas. Puedes consultar las notas de cada estudiante por tarea y su estado de calificación.</p>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-file-excel"></i> Exportar datos</h4>
+                    <ul>
+                        <li>Exporta a <strong>Excel (.xlsx)</strong> desde cualquier sección con el botón correspondiente.</li>
+                        <li>Las evaluaciones con rúbrica se exportan con cada criterio en una columna independiente y la calificación total.</li>
+                        <li>Los archivos se descargan automáticamente con nombre y fecha.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h4><i class="fas fa-mobile-screen"></i> App offline (PWA)</h4>
+                    <p>Esta aplicación es una <strong>PWA</strong>: puedes instalarla en tu dispositivo desde el menú del navegador. Tras la primera carga, funcionará sin conexión a Internet.</p>
+                </div>
+            </div>
+        </div>
 
         <div class="main-layout">
             <!-- Sidebar -->
@@ -1141,6 +1309,19 @@
         });
 
         function setupEventListeners() {
+            // Modal de ayuda
+            document.getElementById('helpBtn').addEventListener('click', () => {
+                document.getElementById('helpModal').classList.add('active');
+            });
+            document.getElementById('closeHelpModal').addEventListener('click', () => {
+                document.getElementById('helpModal').classList.remove('active');
+            });
+            document.getElementById('helpModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    document.getElementById('helpModal').classList.remove('active');
+                }
+            });
+
             // Botones para seleccionar archivo
             document.getElementById('selectFileBtn').addEventListener('click', () => {
                 document.getElementById('fileInput').click();
