@@ -1,0 +1,2994 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Data Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* (mismos estilos que antes, se omiten por brevedad pero se mantienen) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a73e8;
+            --primary-dark: #0d47a1;
+            --secondary: #34a853;
+            --danger: #ea4335;
+            --warning: #fbbc04;
+            --light: #f8f9fa;
+            --dark: #202124;
+            --gray: #5f6368;
+            --border: #dadce0;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 i {
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+            max-width: 800px;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-categories {
+            list-style: none;
+        }
+
+        .data-category {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid transparent;
+        }
+
+        .data-category:hover {
+            background-color: #f1f3f4;
+        }
+
+        .data-category.active {
+            background-color: #e8f0fe;
+            border-left-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .data-category i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .export-format {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .export-format:hover {
+            background-color: #e8f0fe;
+        }
+
+        .export-format.selected {
+            border-color: var(--primary);
+            background-color: #e8f0fe;
+        }
+
+        .export-format i {
+            font-size: 1.3rem;
+            color: var(--gray);
+        }
+
+        .export-format.selected i {
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #2d8c47;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-header h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card i {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .data-table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Detalles de Evaluación */
+        .evaluation-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .evaluation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .evaluation-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .rubric-details {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .rubric-details.show {
+            display: block;
+        }
+
+        .rubric-criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .criterion-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .criterion-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .criterion-description {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .criterion-score {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .score-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .score-max {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .score-bar {
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .score-fill.excellent { background-color: #0d652d; }
+        .score-fill.good { background-color: #188038; }
+        .score-fill.average { background-color: #f9ab00; }
+        .score-fill.poor { background-color: #e37400; }
+        .score-fill.fail { background-color: #d93025; }
+
+        .grade-summary {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .rubric-container {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .rubric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rubric-header h3 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .rubric-header p {
+            color: var(--gray);
+        }
+
+        .rubric-criteria {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .criterion {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .criterion-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .criterion-description {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .ratings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .rating {
+            flex: 1;
+            min-width: 120px;
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .rating.points-10 { border-top: 4px solid #34a853; }
+        .rating.points-9 { border-top: 4px solid #93c47d; }
+        .rating.points-8 { border-top: 4px solid #b6d7a8; }
+        .rating.points-7 { border-top: 4px solid #f1c232; }
+        .rating.points-6 { border-top: 4px solid #f6b26b; }
+        .rating.points-5 { border-top: 4px solid #e69138; }
+        .rating.points-4 { border-top: 4px solid #e06666; }
+        .rating.points-3 { border-top: 4px solid #cc0000; }
+        .rating.points-2 { border-top: 4px solid #990000; }
+        .rating.points-1 { border-top: 4px solid #660000; }
+
+        .rating-points {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .rating-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* File Upload */
+        .file-upload-area {
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 60px 30px;
+            text-align: center;
+            background-color: #fafbfc;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .file-upload-area:hover, .file-upload-area.dragover {
+            border-color: var(--primary);
+            background-color: #f0f7ff;
+        }
+
+        .file-upload-area i {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .file-upload-area h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .file-upload-area p {
+            color: var(--gray);
+            margin-bottom: 25px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-file {
+            background-color: var(--primary);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-file:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--gray);
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+            font-size: 0.9rem;
+        }
+
+        /* Modal para detalles de evaluación */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .modal-header h3 {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-modal:hover {
+            background-color: #f1f3f4;
+        }
+
+        /* Estilos para botones de exportación en modal */
+        .modal-export-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+        }
+
+        .export-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 180px;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .export-btn.json {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .export-btn.json:hover {
+            background-color: #5a6268;
+        }
+
+        .export-btn.excel {
+            background-color: #217346;
+            color: white;
+        }
+
+        .export-btn.excel:hover {
+            background-color: #1e663e;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .rubric-criteria-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-export-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .export-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .header, .main-content, .sidebar {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Classroom Data Manager</h1>
+            <p>Carga, visualiza y exporta datos de Google Classroom. <br>Analiza rúbricas, calificaciones y actividad del curso.</p>
+        </header>
+
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-upload"></i> Cargar Datos</h3>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Arrastra tu archivo JSON aquí</h3>
+                        <p>O haz clic para seleccionar un archivo de Google Takeout (Classroom)</p>
+                        <button class="btn btn-primary btn-block" id="selectFileBtn">
+                            <i class="fas fa-file-import"></i> Seleccionar Archivo
+                        </button>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                        <div class="file-name" id="fileName"></div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-folder-open"></i> Categorías de Datos</h3>
+                    <ul class="data-categories" id="dataCategories">
+                        <li class="data-category active" data-tab="overview">
+                            <i class="fas fa-chart-line"></i> Resumen General
+                        </li>
+                        <li class="data-category" data-tab="students">
+                            <i class="fas fa-users"></i> Estudiantes
+                        </li>
+                        <li class="data-category" data-tab="assignments">
+                            <i class="fas fa-tasks"></i> Tareas
+                        </li>
+                        <li class="data-category" data-tab="rubrics">
+                            <i class="fas fa-clipboard-check"></i> Rúbricas
+                        </li>
+                        <li class="data-category" data-tab="evaluations">
+                            <i class="fas fa-star-half-alt"></i> Evaluaciones
+                        </li>
+                        <li class="data-category" data-tab="submissions">
+                            <i class="fas fa-file-upload"></i> Entregas
+                        </li>
+                        <li class="data-category" data-tab="grades">
+                            <i class="fas fa-star"></i> Calificaciones
+                        </li>
+                        <li class="data-category" data-tab="analytics">
+                            <i class="fas fa-chart-bar"></i> Análisis
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-download"></i> Exportar Datos</h3>
+                    <div class="checkbox-group" id="exportOptions">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exportStudents" checked>
+                            <label for="exportStudents">Estudiantes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exportAssignments" checked>
+                            <label for="exportAssignments">Tareas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exportRubrics" checked>
+                            <label for="exportRubrics">Rúbricas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exportEvaluations" checked>
+                            <label for="exportEvaluations">Evaluaciones</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exportSubmissions" checked>
+                            <label for="exportSubmissions">Entregas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="exportGrades" checked>
+                            <label for="exportGrades">Calificaciones</label>
+                        </div>
+                    </div>
+
+                    <div class="export-options">
+                        <h4 style="margin: 20px 0 10px 0;">Formato de Exportación</h4>
+                        <div class="export-format selected" data-format="excel">
+                            <i class="fas fa-file-excel"></i>
+                            <div>
+                                <div>Excel (.xlsx)</div>
+                                <small>Múltiples hojas, formato completo</small>
+                            </div>
+                        </div>
+                        <div class="export-format" data-format="csv">
+                            <i class="fas fa-file-csv"></i>
+                            <div>
+                                <div>CSV (.csv)</div>
+                                <small>Archivos separados por categoría</small>
+                            </div>
+                        </div>
+                        <div class="export-format" data-format="json">
+                            <i class="fas fa-file-code"></i>
+                            <div>
+                                <div>JSON (.json)</div>
+                                <small>Datos estructurados completos</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary btn-block" id="exportBtn" style="margin-top: 25px;">
+                        <i class="fas fa-download"></i> Exportar Datos Seleccionados
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Overview Tab -->
+                <div class="tab-content active" id="overview">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-chart-line"></i> Resumen del Curso</h2>
+                        <div id="courseName">Carga un archivo para ver los datos</div>
+                    </div>
+                    
+                    <div id="overviewContent">
+                        <div class="file-upload-area" style="border-style: solid; padding: 40px;">
+                            <i class="fas fa-database"></i>
+                            <h3>No hay datos cargados</h3>
+                            <p>Por favor, carga un archivo JSON de Google Classroom para comenzar el análisis.</p>
+                            <button class="btn btn-primary" id="selectFileBtn2">
+                                <i class="fas fa-file-import"></i> Cargar Archivo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Tab -->
+                <div class="tab-content" id="students">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-users"></i> Estudiantes</h2>
+                        <span id="studentCount">0 estudiantes</span>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Tareas Entregadas</th>
+                                    <th>Calificación Promedio</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsTableBody">
+                                <!-- Datos de estudiantes se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Assignments Tab -->
+                <div class="tab-content" id="assignments">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-tasks"></i> Tareas</h2>
+                        <span id="assignmentCount">0 tareas</span>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="assignmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Tema</th>
+                                    <th>Fecha Límite</th>
+                                    <th>Puntos Máximos</th>
+                                    <th>Entregas</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignmentsTableBody">
+                                <!-- Datos de tareas se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Rubrics Tab -->
+                <div class="tab-content" id="rubrics">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-clipboard-check"></i> Rúbricas</h2>
+                        <span id="rubricCount">0 rúbricas</span>
+                    </div>
+                    <div id="rubricsContainer">
+                        <!-- Las rúbricas se cargarán aquí -->
+                    </div>
+                </div>
+
+                <!-- Evaluations Tab -->
+                <div class="tab-content" id="evaluations">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-star-half-alt"></i> Evaluaciones Detalladas</h2>
+                        <span id="evaluationCount">0 evaluaciones</span>
+                    </div>
+                    <div id="evaluationsContainer">
+                        <!-- Las evaluaciones detalladas se cargarán aquí -->
+                    </div>
+                </div>
+
+                <!-- Submissions Tab -->
+                <div class="tab-content" id="submissions">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-file-upload"></i> Entregas de Estudiantes</h2>
+                        <span id="submissionCount">0 entregas</span>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="submissionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Tarea</th>
+                                    <th>Fecha de Entrega</th>
+                                    <th>Estado</th>
+                                    <th>Calificación</th>
+                                    <th>Evaluación</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionsTableBody">
+                                <!-- Datos de entregas se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Grades Tab -->
+                <div class="tab-content" id="grades">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-star"></i> Calificaciones</h2>
+                        <span id="gradeSummary">Sin datos</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="gradesChart"></canvas>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="gradesTable">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th>Tarea</th>
+                                    <th>Calificación</th>
+                                    <th>Puntos Obtenidos</th>
+                                    <th>Puntos Posibles</th>
+                                    <th>Porcentaje</th>
+                                    <th>Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradesTableBody">
+                                <!-- Datos de calificaciones se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div class="tab-content" id="analytics">
+                    <div class="tab-header">
+                        <h2><i class="fas fa-chart-bar"></i> Análisis de Datos</h2>
+                        <span>Estadísticas del curso</span>
+                    </div>
+                    <div class="stats-cards" id="analyticsCards">
+                        <!-- Tarjetas de análisis se cargarán aquí -->
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="submissionsChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="gradesDistributionChart"></canvas>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal para detalles de evaluación -->
+        <div class="modal" id="evaluationModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Detalles de Evaluación</h3>
+                    <button class="close-modal" id="closeModal">&times;</button>
+                </div>
+                <div id="modalBody">
+                    <!-- Contenido del modal se cargará aquí -->
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Classroom Data Manager &copy; 2023 - Aplicación para análisis de datos de Google Classroom</p>
+            <p>Los datos se procesan localmente en tu navegador y no se envían a ningún servidor.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let classroomData = null;
+        let currentTab = 'overview';
+        let exportFormat = 'excel';
+        let gradesChart = null;
+        let submissionsChart = null;
+        let gradesDistributionChart = null;
+        let rubricEvaluations = [];
+        
+        // Variables para exportación de tareas
+        let currentAssignmentData = null;
+        let currentAssignmentTitle = '';
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar eventos
+            setupEventListeners();
+            
+            // Inicializar gráficos (vacíos por ahora)
+            initializeCharts();
+        });
+
+        function setupEventListeners() {
+            // Botones para seleccionar archivo
+            document.getElementById('selectFileBtn').addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+            
+            document.getElementById('selectFileBtn2').addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+
+            // Cambio de archivo
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+            // Arrastrar y soltar archivos
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            fileUploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.add('dragover');
+            });
+            
+            fileUploadArea.addEventListener('dragleave', () => {
+                fileUploadArea.classList.remove('dragover');
+            });
+            
+            fileUploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUploadArea.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                        readFile(file);
+                    } else {
+                        alert('Por favor, selecciona un archivo JSON válido.');
+                    }
+                }
+            });
+
+            // Navegación por pestañas
+            document.querySelectorAll('.data-category').forEach(item => {
+                item.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+
+            // Selección de formato de exportación
+            document.querySelectorAll('.export-format').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.export-format').forEach(f => f.classList.remove('selected'));
+                    this.classList.add('selected');
+                    exportFormat = this.getAttribute('data-format');
+                });
+            });
+
+            // Botón de exportación
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+
+            // Cerrar modal
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('evaluationModal').classList.remove('active');
+            });
+
+            // Cerrar modal al hacer clic fuera
+            document.getElementById('evaluationModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('evaluationModal')) {
+                    document.getElementById('evaluationModal').classList.remove('active');
+                }
+            });
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                readFile(file);
+            }
+        }
+
+        function readFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    processClassroomData(data);
+                    document.getElementById('fileName').textContent = `Archivo cargado: ${file.name}`;
+                } catch (error) {
+                    alert('Error al leer el archivo JSON. Asegúrate de que es un archivo válido de Google Classroom.');
+                    console.error(error);
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('Error al leer el archivo. Intenta de nuevo.');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function processClassroomData(data) {
+            classroomData = data;
+            
+            // Procesar evaluaciones de rúbricas
+            rubricEvaluations = extractRubricEvaluations(data);
+            
+            // Actualizar nombre del curso
+            if (data.name) {
+                document.getElementById('courseName').textContent = data.name;
+                document.title = `${data.name} - Classroom Data Manager`;
+            }
+            
+            // Mostrar vista general
+            showOverview();
+            
+            // Cambiar a la pestaña de resumen
+            switchTab('overview');
+        }
+
+        function extractRubricEvaluations(data) {
+            const evaluations = [];
+            
+            if (!data.posts) return evaluations;
+            
+            data.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    const assignment = post.courseWork;
+                    const rubric = assignment.rubric;
+                    
+                    // Solo procesar si hay rúbrica
+                    if (!rubric) return;
+                    
+                    assignment.submissions.forEach(submission => {
+                        if (!submission.student || !submission.student.profile) return;
+                        
+                        // Buscar puntajes de rúbrica
+                        const rubricScores = submission.draftRubricScore || submission.assignedRubricScore;
+                        if (!rubricScores || !rubricScores.criterionScore) return;
+                        
+                        const student = submission.student.profile;
+                        const studentName = student.name;
+                        
+                        // Extraer nombre descompuesto si está disponible
+                        let givenName = '';
+                        let familyName = '';
+                        
+                        if (studentName.givenName && studentName.familyName) {
+                            // Usar la estructura del objeto name si está disponible
+                            givenName = studentName.givenName;
+                            familyName = studentName.familyName;
+                        } else if (typeof studentName === 'object' && studentName.fullName) {
+                            // Intentar extraer de fullName si está disponible como objeto
+                            const fullName = studentName.fullName;
+                            const parts = fullName.trim().split(' ');
+                            
+                            // Aplicar las reglas para nombres españoles
+                            if (parts.length === 3) {
+                                // Nombre Apellido1 Apellido2
+                                givenName = parts[0];
+                                familyName = parts[1] + ' ' + parts[2];
+                            } else if (parts.length >= 4) {
+                                // Nombre (compuesto) Apellido1 Apellido2
+                                givenName = parts.slice(0, -2).join(' ');
+                                familyName = parts.slice(-2).join(' ');
+                            } else if (parts.length === 2) {
+                                // Nombre Apellido1
+                                givenName = parts[0];
+                                familyName = parts[1];
+                            } else {
+                                givenName = fullName;
+                                familyName = '';
+                            }
+                        } else if (typeof studentName === 'string') {
+                            // Si es un string, aplicar las reglas para nombres españoles
+                            const fullName = studentName;
+                            const parts = fullName.trim().split(' ');
+                            
+                            if (parts.length === 3) {
+                                // Nombre Apellido1 Apellido2
+                                givenName = parts[0];
+                                familyName = parts[1] + ' ' + parts[2];
+                            } else if (parts.length >= 4) {
+                                // Nombre (compuesto) Apellido1 Apellido2
+                                givenName = parts.slice(0, -2).join(' ');
+                                familyName = parts.slice(-2).join(' ');
+                            } else if (parts.length === 2) {
+                                // Nombre Apellido1
+                                givenName = parts[0];
+                                familyName = parts[1];
+                            } else {
+                                givenName = fullName;
+                                familyName = '';
+                            }
+                        }
+                        
+                        // Extraer detalles de criterios
+                        const criterionDetails = rubric.criterion.map(criterion => {
+                            // Encontrar el puntaje para este criterio
+                            const score = rubricScores.criterionScore.find(cs => 
+                                cs.criterion === criterion.title
+                            );
+                            
+                            // Calcular puntaje máximo para este criterio
+                            const maxPoints = Math.max(...criterion.rating.map(r => r.points || 0));
+                            const obtainedPoints = score ? score.points : 0;
+                            const percentage = maxPoints > 0 ? (obtainedPoints / maxPoints * 100) : 0;
+                            
+                            // Determinar nivel de desempeño
+                            let performanceLevel = '';
+                            let performanceColor = '';
+                            
+                            if (percentage >= 90) {
+                                performanceLevel = 'Excelente';
+                                performanceColor = 'excellent';
+                            } else if (percentage >= 80) {
+                                performanceLevel = 'Bueno';
+                                performanceColor = 'good';
+                            } else if (percentage >= 70) {
+                                performanceLevel = 'Adecuado';
+                                performanceColor = 'average';
+                            } else if (percentage >= 60) {
+                                performanceLevel = 'Necesita mejorar';
+                                performanceColor = 'poor';
+                            } else {
+                                performanceLevel = 'Insuficiente';
+                                performanceColor = 'fail';
+                            }
+                            
+                            return {
+                                title: criterion.title,
+                                description: criterion.description,
+                                maxPoints: maxPoints,
+                                obtainedPoints: obtainedPoints,
+                                percentage: percentage.toFixed(1),
+                                performanceLevel: performanceLevel,
+                                performanceColor: performanceColor
+                            };
+                        });
+                        
+                        // Calcular estadísticas generales
+                        const totalObtained = criterionDetails.reduce((sum, c) => sum + c.obtainedPoints, 0);
+                        const totalMax = criterionDetails.reduce((sum, c) => sum + c.maxPoints, 0);
+                        const overallPercentage = totalMax > 0 ? (totalObtained / totalMax * 100).toFixed(1) : 0;
+                        
+                        evaluations.push({
+                            student: {
+                                name: studentName.fullName || studentName,
+                                givenName: givenName,
+                                familyName: familyName,
+                                email: student.emailAddress
+                            },
+                            assignment: {
+                                title: assignment.title,
+                                maxPoints: assignment.maxPoints || totalMax
+                            },
+                            submission: submission,
+                            rubricScores: rubricScores,
+                            criterionDetails: criterionDetails,
+                            totalObtained: totalObtained,
+                            totalMax: totalMax,
+                            overallPercentage: overallPercentage,
+                            finalGrade: submission.assignedGrade
+                        });
+                    });
+                }
+            });
+            
+            return evaluations;
+        }
+
+        function switchTab(tabId) {
+            // Actualizar navegación
+            document.querySelectorAll('.data-category').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.data-category[data-tab="${tabId}"]`).classList.add('active');
+            
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(tabId).classList.add('active');
+            currentTab = tabId;
+            
+            // Cargar datos de la pestaña si es necesario
+            if (classroomData) {
+                switch(tabId) {
+                    case 'overview':
+                        showOverview();
+                        break;
+                    case 'students':
+                        showStudents();
+                        break;
+                    case 'assignments':
+                        showAssignments();
+                        break;
+                    case 'rubrics':
+                        showRubrics();
+                        break;
+                    case 'evaluations':
+                        showEvaluations();
+                        break;
+                    case 'submissions':
+                        showSubmissions();
+                        break;
+                    case 'grades':
+                        showGrades();
+                        break;
+                    case 'analytics':
+                        showAnalytics();
+                        break;
+                }
+            }
+        }
+
+        function showOverview() {
+            if (!classroomData) return;
+            
+            const overviewContent = document.getElementById('overviewContent');
+            const students = classroomData.students || [];
+            const teachers = classroomData.teachers || [];
+            const posts = classroomData.posts || [];
+            const assignments = posts.filter(p => p.courseWork).length;
+            const rubrics = posts.filter(p => p.courseWork && p.courseWork.rubric).length;
+            
+            // Calcular entregas
+            let totalSubmissions = 0;
+            let gradedSubmissions = 0;
+            let rubricEvaluated = 0;
+            
+            posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    totalSubmissions += post.courseWork.submissions.length;
+                    gradedSubmissions += post.courseWork.submissions.filter(s => 
+                        s.assignedGrade !== undefined
+                    ).length;
+                    rubricEvaluated += post.courseWork.submissions.filter(s => 
+                        s.draftRubricScore || s.assignedRubricScore
+                    ).length;
+                }
+            });
+            
+            // Calcular promedio de calificaciones
+            let totalPoints = 0;
+            let totalMaxPoints = 0;
+            posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    post.courseWork.submissions.forEach(sub => {
+                        if (sub.assignedGrade !== undefined) {
+                            totalPoints += sub.assignedGrade;
+                            totalMaxPoints += post.courseWork.maxPoints || 10;
+                        }
+                    });
+                }
+            });
+            
+            const averageGrade = totalMaxPoints > 0 ? ((totalPoints / totalMaxPoints) * 10).toFixed(2) : 0;
+            
+            overviewContent.innerHTML = `
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <div class="value">${students.length}</div>
+                        <div class="label">Estudiantes</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <div class="value">${teachers.length}</div>
+                        <div class="label">Profesores</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-tasks"></i>
+                        <div class="value">${assignments}</div>
+                        <div class="label">Tareas</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clipboard-check"></i>
+                        <div class="value">${rubrics}</div>
+                        <div class="label">Con Rúbricas</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-file-upload"></i>
+                        <div class="value">${totalSubmissions}</div>
+                        <div class="label">Entregas</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-star"></i>
+                        <div class="value">${rubricEvaluated}</div>
+                        <div class="label">Evaluadas con Rúbrica</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="value">${averageGrade}</div>
+                        <div class="label">Promedio</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-percentage"></i>
+                        <div class="value">${rubricEvaluations.length}</div>
+                        <div class="label">Evaluaciones Detalladas</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">Resumen del Curso</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h4 style="color: var(--gray); margin-bottom: 10px;">Información del Curso</h4>
+                            <p><strong>Nombre:</strong> ${classroomData.name || 'No disponible'}</p>
+                            <p><strong>Sección:</strong> ${classroomData.section || 'No disponible'}</p>
+                            <p><strong>Estado:</strong> ${classroomData.courseState === 'ACTIVE' ? 'Activo' : 'Inactivo'}</p>
+                            <p><strong>Propietario:</strong> ${classroomData.owner?.name?.fullName || 'No disponible'}</p>
+                            <p><strong>Evaluaciones con Rúbrica:</strong> ${rubricEvaluations.length}</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--gray); margin-bottom: 10px;">Temas del Curso</h4>
+                            <ul style="list-style-type: none; padding-left: 0;">
+                                ${(classroomData.topics || []).map(topic => 
+                                    `<li style="padding: 5px 0; border-bottom: 1px solid #eee;">
+                                        <i class="fas fa-folder" style="color: var(--primary); margin-right: 8px;"></i>
+                                        ${topic.name}
+                                    </li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showStudents() {
+            if (!classroomData || !classroomData.students) return;
+            
+            const students = classroomData.students;
+            document.getElementById('studentCount').textContent = `${students.length} estudiantes`;
+            
+            // Calcular estadísticas por estudiante
+            const studentsWithStats = students.map(student => {
+                const studentEvaluations = rubricEvaluations.filter(e => e.student.email === student.profile.emailAddress);
+                const totalGrade = studentEvaluations.reduce((sum, e) => sum + parseFloat(e.overallPercentage), 0);
+                const avgGrade = studentEvaluations.length > 0 ? (totalGrade / studentEvaluations.length).toFixed(1) : 'N/A';
+                
+                return {
+                    name: student.profile.name.fullName || student.profile.name,
+                    email: student.profile.emailAddress,
+                    evaluations: studentEvaluations.length,
+                    avgGrade: avgGrade,
+                    status: studentEvaluations.length > 0 ? 'Evaluado' : 'Sin evaluaciones'
+                };
+            });
+            
+            // Actualizar tabla
+            const tableBody = document.getElementById('studentsTableBody');
+            tableBody.innerHTML = studentsWithStats.map(student => `
+                <tr>
+                    <td><strong>${student.name}</strong></td>
+                    <td>${student.email}</td>
+                    <td>${student.evaluations} evaluaciones</td>
+                    <td>${student.avgGrade}%</td>
+                    <td>
+                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; 
+                              background-color: ${student.status === 'Evaluado' ? '#e6f4ea' : '#fce8e6'}; 
+                              color: ${student.status === 'Evaluado' ? '#137333' : '#c5221f'}">
+                            ${student.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showAssignments() {
+            if (!classroomData || !classroomData.posts) return;
+            
+            const assignments = classroomData.posts.filter(post => post.courseWork);
+            document.getElementById('assignmentCount').textContent = `${assignments.length} tareas`;
+            
+            // Actualizar tabla
+            const tableBody = document.getElementById('assignmentsTableBody');
+            tableBody.innerHTML = assignments.map(assignment => {
+                const courseWork = assignment.courseWork;
+                const dueDate = courseWork.dueTime ? new Date(courseWork.dueTime).toLocaleDateString() : 'Sin fecha';
+                const submissions = courseWork.submissions || [];
+                const submitted = submissions.filter(s => s.state === 'TURNED_IN' || s.state === 'RETURNED').length;
+                const totalStudents = classroomData.students ? classroomData.students.length : 0;
+                const hasRubric = courseWork.rubric ? 'Sí' : 'No';
+                const rubricEvaluations = submissions.filter(s => s.draftRubricScore || s.assignedRubricScore).length;
+                
+                return `
+                    <tr>
+                        <td><strong>${courseWork.title}</strong></td>
+                        <td>${assignment.topics ? assignment.topics.map(t => t.name).join(', ') : 'Sin tema'}</td>
+                        <td>${dueDate}</td>
+                        <td>${courseWork.maxPoints || 'N/A'}</td>
+                        <td>${submitted}/${totalStudents}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="showAssignmentEvaluations('${courseWork.title}')" 
+                                    style="padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fas fa-chart-bar"></i> Ver Evaluaciones
+                            </button>
+                            ${courseWork.rubric ? `
+                                <button class="btn btn-secondary" onclick="showRubricDetails('${courseWork.title}')" 
+                                        style="padding: 6px 12px; font-size: 0.85rem; margin-left: 5px;">
+                                    <i class="fas fa-clipboard-check"></i> Rúbrica
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ================= MODIFICACIÓN PRINCIPAL =================
+        function showRubrics() {
+            if (!classroomData || !classroomData.posts) return;
+            
+            // Encontrar todas las rúbricas
+            const rubrics = [];
+            classroomData.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.rubric) {
+                    rubrics.push({
+                        title: post.courseWork.title,
+                        rubric: post.courseWork.rubric,
+                        maxPoints: post.courseWork.maxPoints || 10
+                    });
+                }
+            });
+            
+            document.getElementById('rubricCount').textContent = `${rubrics.length} rúbricas encontradas`;
+            
+            // Mostrar rúbricas
+            const container = document.getElementById('rubricsContainer');
+            if (rubrics.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 40px;">No se encontraron rúbricas en los datos.</p>';
+                return;
+            }
+            
+            container.innerHTML = rubrics.map(rubricData => `
+                <div class="rubric-container">
+                    <div class="rubric-header">
+                        <div>
+                            <h3 style="color: var(--primary); margin-bottom: 5px;">${rubricData.title}</h3>
+                            <p style="color: var(--gray);">${rubricData.rubric.criterion.length} criterios de evaluación | Puntos máximos: ${rubricData.maxPoints}</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="exportRubricToCSV('${rubricData.title.replace(/'/g, "\\'")}')" style="padding: 8px 12px; font-size: 0.9rem;">
+                            <i class="fas fa-download"></i> Exportar CSV (Classroom)
+                        </button>
+                    </div>
+                    
+                    <div class="rubric-criteria">
+                        ${rubricData.rubric.criterion.map((criterion, idx) => {
+                            // Calcular puntaje máximo para este criterio
+                            const maxPoints = Math.max(...criterion.rating.map(r => r.points || 0));
+                            return `
+                                <div class="criterion">
+                                    <div class="criterion-title">${criterion.title || `Criterio ${idx + 1}`}</div>
+                                    <div class="criterion-description">${criterion.description || 'Sin descripción'}</div>
+                                    <div style="margin: 10px 0; color: var(--primary); font-weight: 600;">
+                                        Puntos máximos: ${maxPoints}
+                                    </div>
+                                    
+                                    <div class="ratings">
+                                        ${criterion.rating ? criterion.rating.map((rating, ratingIdx) => {
+                                            if (!rating.points && rating.points !== 0) return '';
+                                            
+                                            const points = rating.points;
+                                            let label = '';
+                                            if (points >= 9) label = 'Excelente';
+                                            else if (points >= 7) label = 'Bueno';
+                                            else if (points >= 5) label = 'Adecuado';
+                                            else if (points >= 3) label = 'Necesita mejorar';
+                                            else label = 'Insuficiente';
+                                            
+                                            return `
+                                                <div class="rating points-${Math.floor(points)}">
+                                                    <div class="rating-points">${points}</div>
+                                                    <div class="rating-label">${label}</div>
+                                                </div>
+                                            `;
+                                        }).join('') : '<p>No hay niveles definidos</p>'}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ================= NUEVAS FUNCIONES PARA EXPORTAR RÚBRICA INDIVIDUAL =================
+        /**
+         * Limpia un string HTML y lo formatea para CSV, encerrándolo entre comillas.
+         */
+        function cleanDescriptor(htmlString) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlString;
+            const textoPlano = tempDiv.textContent || tempDiv.innerText || '';
+            // Limpiar saltos de línea y espacios múltiples, y escapar comillas
+            const textoLimpio = textoPlano.replace(/\s+/g, ' ').trim();
+            return `"${textoLimpio.replace(/"/g, '""')}"`;
+        }
+
+        /**
+         * Genera un título abreviado para el criterio (similar a la otra app)
+         */
+        function getAbbreviatedTitle(fullTitle) {
+            const match = fullTitle.match(/^(TEC\.\d+\.\d+\.\d+)\.?\s*(.*)/);
+            if (match) {
+                const code = match[1].replace(/\./g, ' ');
+                const rest = match[2] || '';
+                return `${code}. (${rest})`;
+            }
+            return fullTitle;
+        }
+
+        /**
+         * Exporta una rúbrica específica a formato CSV para importar en Classroom
+         */
+        function exportRubricToCSV(assignmentTitle) {
+            if (!classroomData) {
+                alert('No hay datos cargados.');
+                return;
+            }
+
+            // Buscar la tarea con ese título
+            const post = classroomData.posts.find(p => p.courseWork && p.courseWork.title === assignmentTitle);
+            if (!post || !post.courseWork.rubric) {
+                alert('No se encontró la rúbrica para esta tarea.');
+                return;
+            }
+
+            const rubric = post.courseWork.rubric;
+            const criteria = rubric.criterion;
+
+            // Cabeceras fijas del formato Classroom
+            let csvRows = [
+                "Se recomienda no editar las guías de evaluación en formato de hoja de cálculo",
+                "v1.0-s"
+            ];
+
+            // Procesar cada criterio
+            criteria.forEach(criterion => {
+                // Título abreviado
+                const tituloAbreviado = getAbbreviatedTitle(criterion.title || 'Criterio');
+                csvRows.push(tituloAbreviado);
+
+                // Descripción completa (limpiar HTML si existe)
+                const descripcionLimpia = criterion.description ? cleanDescriptor(criterion.description) : '""';
+                csvRows.push(descripcionLimpia);
+
+                // Obtener los ratings ordenados de mayor a menor puntuación
+                const ratings = criterion.rating ? [...criterion.rating].sort((a, b) => b.points - a.points) : [];
+
+                // Línea de puntos
+                let puntosLinea = "\t";
+                ratings.forEach(r => {
+                    puntosLinea += (r.points !== undefined ? r.points.toFixed(1) : '0.0') + "\t";
+                });
+                // Eliminar el último tabulador
+                puntosLinea = puntosLinea.slice(0, -1);
+                csvRows.push(puntosLinea);
+
+                // Línea de descriptores (títulos de los niveles)
+                let descriptoresLinea = "\t";
+                ratings.forEach(r => {
+                    const desc = r.title ? cleanDescriptor(r.title) : '""';
+                    descriptoresLinea += desc + "\t";
+                });
+                descriptoresLinea = descriptoresLinea.slice(0, -1);
+                csvRows.push(descriptoresLinea);
+
+                // Línea en blanco entre criterios
+                csvRows.push("");
+            });
+
+            // Crear y descargar el archivo CSV con BOM para UTF-8
+            const csvString = csvRows.join('\n');
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `rubrica_${assignmentTitle.replace(/[^a-z0-9]/gi, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // Mostrar instrucciones
+            setTimeout(() => {
+                alert(`Rúbrica exportada correctamente.\n\nSiguientes pasos:\n1) Abre una Google Sheet en blanco\n2) Importa el archivo .csv a la Google Sheet\n3) Renombra la hoja a, por ejemplo, "Rúbrica para importar"\n4) En Classroom, importa la rúbrica desde esa hoja.`);
+            }, 500);
+        }
+        // ================= FIN DE NUEVAS FUNCIONES =================
+
+        function showEvaluations() {
+            if (!rubricEvaluations || rubricEvaluations.length === 0) {
+                document.getElementById('evaluationsContainer').innerHTML = `
+                    <div class="file-upload-area" style="border-style: solid; padding: 40px;">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No hay evaluaciones disponibles</h3>
+                        <p>Las evaluaciones detalladas basadas en rúbricas aparecerán aquí cuando cargues un archivo con datos de evaluaciones.</p>
+                    </div>
+                `;
+                document.getElementById('evaluationCount').textContent = '0 evaluaciones';
+                return;
+            }
+            
+            document.getElementById('evaluationCount').textContent = `${rubricEvaluations.length} evaluaciones detalladas`;
+            
+            // Agrupar evaluaciones por estudiante
+            const evaluationsByStudent = {};
+            rubricEvaluations.forEach(evaluation => {
+                if (!evaluationsByStudent[evaluation.student.email]) {
+                    evaluationsByStudent[evaluation.student.email] = {
+                        student: evaluation.student,
+                        evaluations: []
+                    };
+                }
+                evaluationsByStudent[evaluation.student.email].evaluations.push(evaluation);
+            });
+            
+            // Crear HTML para cada estudiante
+            const container = document.getElementById('evaluationsContainer');
+            container.innerHTML = Object.values(evaluationsByStudent).map(studentData => `
+                <div class="evaluation-details">
+                    <div class="evaluation-header">
+                        <div class="evaluation-title">
+                            <i class="fas fa-user-graduate"></i> ${studentData.student.name}
+                            <span style="font-size: 0.9rem; color: var(--gray); margin-left: 10px;">
+                                ${studentData.evaluations.length} evaluaciones
+                            </span>
+                        </div>
+                        <button class="expand-btn" onclick="toggleStudentEvaluations('${studentData.student.email}')">
+                            <i class="fas fa-chevron-down"></i> Ver evaluaciones
+                        </button>
+                    </div>
+                    
+                    <div class="rubric-details" id="eval-${studentData.student.email}">
+                        ${studentData.evaluations.map(evaluation => `
+                            <div class="evaluation-details" style="margin-top: 15px; background-color: white; border-left-color: #34a853;">
+                                <div class="evaluation-header">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <strong>${evaluation.assignment.title}</strong>
+                                        <span style="padding: 2px 8px; background-color: #e8f0fe; color: var(--primary); 
+                                              border-radius: 12px; font-size: 0.8rem;">
+                                            ${evaluation.overallPercentage}%
+                                        </span>
+                                    </div>
+                                    <button class="expand-btn" onclick="showEvaluationDetails('${evaluation.student.email}', '${evaluation.assignment.title}')">
+                                        <i class="fas fa-search"></i> Ver detalles
+                                    </button>
+                                </div>
+                                
+                                <div class="rubric-criteria-grid" style="margin-top: 15px;">
+                                    ${evaluation.criterionDetails.map(criterion => `
+                                        <div class="criterion-card">
+                                            <div class="criterion-title">${criterion.title}</div>
+                                            <div class="criterion-description">${criterion.description}</div>
+                                            
+                                            <div class="score-bar">
+                                                <div class="score-fill ${criterion.performanceColor}" 
+                                                     style="width: ${criterion.percentage}%"></div>
+                                            </div>
+                                            
+                                            <div class="criterion-score">
+                                                <div>
+                                                    <span class="score-value">${criterion.obtainedPoints.toFixed(1)}</span>
+                                                    <span class="score-max"> / ${criterion.maxPoints}</span>
+                                                </div>
+                                                <div style="font-size: 0.85rem; color: var(--gray);">
+                                                    ${criterion.percentage}% - ${criterion.performanceLevel}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <div class="grade-summary">
+                                    <div class="summary-grid">
+                                        <div class="summary-item">
+                                            <div class="summary-value">${evaluation.totalObtained.toFixed(1)}</div>
+                                            <div class="summary-label">Puntos Obtenidos</div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div class="summary-value">${evaluation.totalMax}</div>
+                                            <div class="summary-label">Puntos Máximos</div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div class="summary-value">${evaluation.overallPercentage}%</div>
+                                            <div class="summary-label">Porcentaje Total</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showSubmissions() {
+            if (!classroomData || !classroomData.posts) return;
+            
+            // Recolectar todas las entregas
+            const allSubmissions = [];
+            classroomData.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    post.courseWork.submissions.forEach(submission => {
+                        if (submission.student && submission.student.profile) {
+                            // Verificar si tiene evaluación de rúbrica
+                            const hasRubricEvaluation = submission.draftRubricScore || submission.assignedRubricScore;
+                            
+                            allSubmissions.push({
+                                studentName: submission.student.profile.name.fullName || submission.student.profile.name,
+                                assignment: post.courseWork.title,
+                                submitTime: submission.assignmentSubmission ? 'Entregado' : 'No entregado',
+                                state: submission.state,
+                                grade: submission.assignedGrade !== undefined ? 
+                                    `${submission.assignedGrade}/${post.courseWork.maxPoints || 10}` : 'No calificado',
+                                hasEvaluation: hasRubricEvaluation ? 'Sí' : 'No'
+                            });
+                        }
+                    });
+                }
+            });
+            
+            document.getElementById('submissionCount').textContent = `${allSubmissions.length} entregas`;
+            
+            // Actualizar tabla
+            const tableBody = document.getElementById('submissionsTableBody');
+            tableBody.innerHTML = allSubmissions.map(sub => `
+                <tr>
+                    <td>${sub.studentName}</td>
+                    <td>${sub.assignment}</td>
+                    <td>${sub.submitTime}</td>
+                    <td>
+                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; 
+                              background-color: ${getStatusColor(sub.state).bg}; 
+                              color: ${getStatusColor(sub.state).color}">
+                            ${getStatusLabel(sub.state)}
+                        </span>
+                    </td>
+                    <td><strong>${sub.grade}</strong></td>
+                    <td>
+                        ${sub.hasEvaluation === 'Sí' ? 
+                            `<span style="padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; 
+                                  background-color: #e6f4ea; color: #137333;">
+                                <i class="fas fa-clipboard-check"></i> Con Rúbrica
+                            </span>` :
+                            `<span style="padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; 
+                                  background-color: #fce8e6; color: #c5221f;">
+                                Sin Rúbrica
+                            </span>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showGrades() {
+            if (!classroomData) return;
+            
+            // Recolectar todas las calificaciones
+            const allGrades = [];
+            let totalPoints = 0;
+            let totalMaxPoints = 0;
+            
+            classroomData.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    const maxPoints = post.courseWork.maxPoints || 10;
+                    
+                    post.courseWork.submissions.forEach(submission => {
+                        if (submission.assignedGrade !== undefined && submission.student && submission.student.profile) {
+                            const grade = submission.assignedGrade;
+                            const percentage = maxPoints > 0 ? (grade / maxPoints * 100).toFixed(1) : 0;
+                            
+                            // Verificar si tiene evaluación de rúbrica
+                            const hasRubricEvaluation = submission.draftRubricScore || submission.assignedRubricScore;
+                            
+                            allGrades.push({
+                                student: submission.student.profile.name.fullName || submission.student.profile.name,
+                                studentEmail: submission.student.profile.emailAddress,
+                                assignment: post.courseWork.title,
+                                grade: grade,
+                                maxPoints: maxPoints,
+                                percentage: percentage,
+                                hasRubric: hasRubricEvaluation
+                            });
+                            
+                            totalPoints += grade;
+                            totalMaxPoints += maxPoints;
+                        }
+                    });
+                }
+            });
+            
+            // Actualizar resumen
+            const avgPercentage = totalMaxPoints > 0 ? (totalPoints / totalMaxPoints * 100).toFixed(1) : 0;
+            document.getElementById('gradeSummary').textContent = 
+                `${allGrades.length} calificaciones | Promedio: ${avgPercentage}%`;
+            
+            // Actualizar tabla
+            const tableBody = document.getElementById('gradesTableBody');
+            tableBody.innerHTML = allGrades.map(grade => `
+                <tr>
+                    <td>${grade.student}</td>
+                    <td>${grade.assignment}</td>
+                    <td><strong>${grade.grade}</strong></td>
+                    <td>${grade.grade}</td>
+                    <td>${grade.maxPoints}</td>
+                    <td>
+                        <span style="padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; 
+                              background-color: ${getGradeColor(grade.percentage)}; 
+                              color: #fff;">
+                            ${grade.percentage}%
+                        </span>
+                    </td>
+                    <td>
+                        ${grade.hasRubric ? 
+                            `<button class="btn btn-primary" onclick="showStudentEvaluation('${grade.studentEmail}', '${grade.assignment}')"
+                                     style="padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fas fa-clipboard-check"></i> Ver Evaluación
+                            </button>` :
+                            `<span style="color: var(--gray); font-size: 0.85rem;">Sin rúbrica</span>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Actualizar gráfico de calificaciones
+            updateGradesChart(allGrades);
+        }
+
+        function showAnalytics() {
+            if (!classroomData) return;
+            
+            // Calcular estadísticas
+            const students = classroomData.students || [];
+            const posts = classroomData.posts || [];
+            const assignments = posts.filter(p => p.courseWork).length;
+            const assignmentsWithRubrics = posts.filter(p => p.courseWork && p.courseWork.rubric).length;
+            
+            // Estadísticas de evaluaciones con rúbrica
+            let totalRubricEvaluations = 0;
+            let avgRubricScore = 0;
+            let criterionStats = {};
+            
+            rubricEvaluations.forEach(evaluation => {
+                totalRubricEvaluations++;
+                avgRubricScore += parseFloat(evaluation.overallPercentage);
+                
+                evaluation.criterionDetails.forEach(criterion => {
+                    if (!criterionStats[criterion.title]) {
+                        criterionStats[criterion.title] = {
+                            totalPoints: 0,
+                            maxPoints: criterion.maxPoints,
+                            count: 0
+                        };
+                    }
+                    criterionStats[criterion.title].totalPoints += criterion.obtainedPoints;
+                    criterionStats[criterion.title].count++;
+                });
+            });
+            
+            avgRubricScore = totalRubricEvaluations > 0 ? (avgRubricScore / totalRubricEvaluations).toFixed(1) : 0;
+            
+            // Actualizar tarjetas de análisis
+            document.getElementById('analyticsCards').innerHTML = `
+                <div class="stat-card">
+                    <i class="fas fa-clipboard-check"></i>
+                    <div class="value">${assignmentsWithRubrics}</div>
+                    <div class="label">Tareas con Rúbricas</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-star-half-alt"></i>
+                    <div class="value">${rubricEvaluations.length}</div>
+                    <div class="label">Evaluaciones Detalladas</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-percentage"></i>
+                    <div class="value">${avgRubricScore}%</div>
+                    <div class="label">Promedio Rúbricas</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="value">${Object.keys(criterionStats).length}</div>
+                    <div class="label">Criterios Evaluados</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div class="value">${students.length}</div>
+                    <div class="label">Total Estudiantes</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-project-diagram"></i>
+                    <div class="value">${assignments}</div>
+                    <div class="label">Total Tareas</div>
+                </div>
+            `;
+            
+            // Actualizar gráficos
+            updateAnalyticsCharts();
+        }
+
+        // Funciones auxiliares para mostrar detalles
+        function toggleStudentEvaluations(studentEmail) {
+            const detailDiv = document.getElementById(`eval-${studentEmail}`);
+            const btn = detailDiv.previousElementSibling.querySelector('.expand-btn');
+            
+            if (detailDiv.classList.contains('show')) {
+                detailDiv.classList.remove('show');
+                btn.innerHTML = '<i class="fas fa-chevron-down"></i> Ver evaluaciones';
+            } else {
+                detailDiv.classList.add('show');
+                btn.innerHTML = '<i class="fas fa-chevron-up"></i> Ocultar evaluaciones';
+            }
+        }
+
+        function showEvaluationDetails(studentEmail, assignmentTitle) {
+            const evaluation = rubricEvaluations.find(e => 
+                e.student.email === studentEmail && e.assignment.title === assignmentTitle
+            );
+            
+            if (!evaluation) return;
+            
+            document.getElementById('modalTitle').textContent = 
+                `Evaluación: ${evaluation.student.name} - ${evaluation.assignment.title}`;
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div class="grade-summary">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-value">${evaluation.totalObtained.toFixed(1)}</div>
+                            <div class="summary-label">Puntos Obtenidos</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${evaluation.totalMax}</div>
+                            <div class="summary-label">Puntos Máximos</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${evaluation.overallPercentage}%</div>
+                            <div class="summary-label">Porcentaje Total</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="margin: 25px 0 15px 0; color: var(--primary);">Detalles por Criterio</h4>
+                
+                <div class="rubric-criteria-grid">
+                    ${evaluation.criterionDetails.map(criterion => `
+                        <div class="criterion-card">
+                            <div class="criterion-title">${criterion.title}</div>
+                            <div class="criterion-description">${criterion.description}</div>
+                            
+                            <div class="score-bar">
+                                <div class="score-fill ${criterion.performanceColor}" 
+                                     style="width: ${criterion.percentage}%"></div>
+                            </div>
+                            
+                            <div class="criterion-score">
+                                <div>
+                                    <span class="score-value">${criterion.obtainedPoints.toFixed(1)}</span>
+                                    <span class="score-max"> / ${criterion.maxPoints}</span>
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">
+                                    ${criterion.percentage}% - ${criterion.performanceLevel}
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 10px; font-size: 0.9rem;">
+                                <strong>Nivel de desempeño:</strong> ${criterion.performanceLevel}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="margin-top: 25px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+                    <h5 style="margin-bottom: 10px; color: var(--dark);">Resumen de la Evaluación</h5>
+                    <p>El estudiante obtuvo un ${evaluation.overallPercentage}% en esta tarea evaluada mediante rúbrica.</p>
+                    <p><strong>Calificación final:</strong> ${evaluation.finalGrade || 'No asignada'}</p>
+                    ${evaluation.submission.comments ? `
+                        <p><strong>Comentarios:</strong> ${evaluation.submission.comments.map(c => c.comment).join(', ')}</p>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('evaluationModal').classList.add('active');
+        }
+
+        function showStudentEvaluation(studentEmail, assignmentTitle) {
+            showEvaluationDetails(studentEmail, assignmentTitle);
+        }
+
+        function showAssignmentEvaluations(assignmentTitle) {
+            const assignmentEvaluations = rubricEvaluations.filter(e => e.assignment.title === assignmentTitle);
+            
+            if (assignmentEvaluations.length === 0) {
+                alert(`No hay evaluaciones con rúbrica para la tarea "${assignmentTitle}".`);
+                return;
+            }
+            
+            // Guardar datos para exportación
+            currentAssignmentData = assignmentEvaluations;
+            currentAssignmentTitle = assignmentTitle;
+            
+            document.getElementById('modalTitle').textContent = `Evaluaciones: ${assignmentTitle}`;
+            
+            // Calcular estadísticas de la tarea
+            const totalStudents = assignmentEvaluations.length;
+            const avgPercentage = assignmentEvaluations.reduce((sum, e) => sum + parseFloat(e.overallPercentage), 0) / totalStudents;
+            const maxPercentage = Math.max(...assignmentEvaluations.map(e => parseFloat(e.overallPercentage)));
+            const minPercentage = Math.min(...assignmentEvaluations.map(e => parseFloat(e.overallPercentage)));
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div class="grade-summary">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-value">${totalStudents}</div>
+                            <div class="summary-label">Estudiantes Evaluados</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${avgPercentage.toFixed(1)}%</div>
+                            <div class="summary-label">Promedio</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${maxPercentage.toFixed(1)}%</div>
+                            <div class="summary-label">Máximo</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value">${minPercentage.toFixed(1)}%</div>
+                            <div class="summary-label">Mínimo</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="margin: 25px 0 15px 0; color: var(--primary);">Evaluaciones por Estudiante</h4>
+                
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${assignmentEvaluations.map(evaluation => `
+                        <div class="evaluation-details" style="margin-bottom: 15px;">
+                            <div class="evaluation-header">
+                                <strong>${evaluation.student.name}</strong>
+                                <span style="padding: 4px 10px; background-color: ${getGradeColor(evaluation.overallPercentage)}; 
+                                      color: white; border-radius: 12px; font-size: 0.85rem;">
+                                    ${evaluation.overallPercentage}%
+                                </span>
+                            </div>
+                            
+                            <div style="margin-top: 10px; font-size: 0.9rem;">
+                                <strong>Puntos:</strong> ${evaluation.totalObtained.toFixed(1)} / ${evaluation.totalMax}
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="showEvaluationDetails('${evaluation.student.email}', '${evaluation.assignment.title}')"
+                                    style="margin-top: 10px; padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="fas fa-search"></i> Ver detalles completos
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <!-- BOTONES DE EXPORTACIÓN -->
+                <div class="modal-export-buttons">
+                    <button class="export-btn json" onclick="exportAssignmentToJSON()">
+                        <i class="fas fa-file-code"></i> Exportar a JSON
+                    </button>
+                    <button class="export-btn excel" onclick="exportAssignmentToExcel()">
+                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('evaluationModal').classList.add('active');
+        }
+
+        function showRubricDetails(assignmentTitle) {
+            const post = classroomData.posts.find(p => p.courseWork && p.courseWork.title === assignmentTitle);
+            
+            if (!post || !post.courseWork.rubric) {
+                alert(`No se encontró la rúbrica para la tarea "${assignmentTitle}".`);
+                return;
+            }
+            
+            const rubric = post.courseWork.rubric;
+            
+            document.getElementById('modalTitle').textContent = `Rúbrica: ${assignmentTitle}`;
+            
+            document.getElementById('modalBody').innerHTML = `
+                <div class="rubric-criteria">
+                    ${rubric.criterion.map((criterion, idx) => {
+                        const maxPoints = Math.max(...criterion.rating.map(r => r.points || 0));
+                        return `
+                            <div class="criterion" style="margin-bottom: 20px;">
+                                <div class="criterion-title">${criterion.title || `Criterio ${idx + 1}`}</div>
+                                <div class="criterion-description">${criterion.description || 'Sin descripción'}</div>
+                                <div style="margin: 10px 0; color: var(--primary); font-weight: 600;">
+                                    Puntos máximos: ${maxPoints}
+                                </div>
+                                
+                                <div class="ratings">
+                                    ${criterion.rating ? criterion.rating.map((rating, ratingIdx) => {
+                                        if (!rating.points && rating.points !== 0) return '';
+                                        
+                                        const points = rating.points;
+                                        let label = '';
+                                        if (points >= 9) label = 'Excelente';
+                                        else if (points >= 7) label = 'Bueno';
+                                        else if (points >= 5) label = 'Adecuado';
+                                        else if (points >= 3) label = 'Necesita mejorar';
+                                        else label = 'Insuficiente';
+                                        
+                                        return `
+                                            <div class="rating points-${Math.floor(points)}">
+                                                <div class="rating-points">${points}</div>
+                                                <div class="rating-label">${label}</div>
+                                            </div>
+                                        `;
+                                    }).join('') : '<p>No hay niveles definidos</p>'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            document.getElementById('evaluationModal').classList.add('active');
+        }
+
+        function initializeCharts() {
+            // Gráfico de calificaciones
+            const gradesCtx = document.getElementById('gradesChart').getContext('2d');
+            gradesChart = new Chart(gradesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Calificaciones',
+                        data: [],
+                        borderColor: '#1a73e8',
+                        backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Evolución de Calificaciones'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Calificación (%)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de entregas
+            const submissionsCtx = document.getElementById('submissionsChart').getContext('2d');
+            submissionsChart = new Chart(submissionsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Entregas por Tarea'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Entregas'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de distribución de calificaciones
+            const distributionCtx = document.getElementById('gradesDistributionChart').getContext('2d');
+            gradesDistributionChart = new Chart(distributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#34a853', '#93c47d', '#b6d7a8', '#f1c232', 
+                            '#f6b26b', '#e69138', '#e06666', '#cc0000'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Distribución de Calificaciones'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateGradesChart(gradesData) {
+            if (!gradesData || gradesData.length === 0) return;
+            
+            // Agrupar por estudiante para ver evolución
+            const students = [...new Set(gradesData.map(g => g.student))];
+            const studentGrades = {};
+            
+            students.forEach(student => {
+                studentGrades[student] = gradesData
+                    .filter(g => g.student === student)
+                    .map(g => parseFloat(g.percentage));
+            });
+            
+            // Actualizar gráfico (ejemplo con primer estudiante)
+            if (students.length > 0) {
+                const firstStudent = students[0];
+                const labels = gradesData
+                    .filter(g => g.student === firstStudent)
+                    .map(g => g.assignment.substring(0, 15) + '...');
+                
+                const data = studentGrades[firstStudent];
+                
+                gradesChart.data.labels = labels;
+                gradesChart.data.datasets[0].data = data;
+                gradesChart.data.datasets[0].label = `Calificaciones de ${firstStudent}`;
+                gradesChart.update();
+            }
+        }
+
+        function updateAnalyticsCharts() {
+            if (rubricEvaluations.length === 0) return;
+            
+            // Gráfico de distribución de calificaciones basado en rúbricas
+            const gradeRanges = {
+                '90-100': 0,
+                '80-89': 0,
+                '70-79': 0,
+                '60-69': 0,
+                '0-59': 0
+            };
+            
+            rubricEvaluations.forEach(evaluation => {
+                const percentage = parseFloat(evaluation.overallPercentage);
+                if (percentage >= 90) gradeRanges['90-100']++;
+                else if (percentage >= 80) gradeRanges['80-89']++;
+                else if (percentage >= 70) gradeRanges['70-79']++;
+                else if (percentage >= 60) gradeRanges['60-69']++;
+                else gradeRanges['0-59']++;
+            });
+            
+            // Gráfico de distribución de calificaciones
+            gradesDistributionChart.data.labels = Object.keys(gradeRanges);
+            gradesDistributionChart.data.datasets[0].data = Object.values(gradeRanges);
+            gradesDistributionChart.update();
+            
+            // Gráfico de entregas por tarea (con rúbrica)
+            const assignmentsWithRubrics = {};
+            rubricEvaluations.forEach(evaluation => {
+                if (!assignmentsWithRubrics[evaluation.assignment.title]) {
+                    assignmentsWithRubrics[evaluation.assignment.title] = 1;
+                } else {
+                    assignmentsWithRubrics[evaluation.assignment.title]++;
+                }
+            });
+            
+            submissionsChart.data.labels = Object.keys(assignmentsWithRubrics);
+            submissionsChart.data.datasets = [{
+                label: 'Evaluaciones con Rúbrica',
+                data: Object.values(assignmentsWithRubrics),
+                backgroundColor: '#1a73e8'
+            }];
+            submissionsChart.update();
+        }
+
+        function getStatusColor(status) {
+            switch(status) {
+                case 'TURNED_IN':
+                    return { bg: '#e6f4ea', color: '#137333' };
+                case 'RETURNED':
+                    return { bg: '#e8f0fe', color: '#1a73e8' };
+                case 'CREATED':
+                    return { bg: '#fef7e0', color: '#f9ab00' };
+                default:
+                    return { bg: '#f3e5f5', color: '#8e24aa' };
+            }
+        }
+
+        function getStatusLabel(status) {
+            switch(status) {
+                case 'TURNED_IN': return 'Entregado';
+                case 'RETURNED': return 'Devuelto';
+                case 'CREATED': return 'Creado';
+                default: return status;
+            }
+        }
+
+        function getGradeColor(percentage) {
+            if (percentage >= 90) return '#0d652d';
+            if (percentage >= 80) return '#188038';
+            if (percentage >= 70) return '#34a853';
+            if (percentage >= 60) return '#f9ab00';
+            if (percentage >= 50) return '#e37400';
+            return '#d93025';
+        }
+
+        // Funciones de utilidad para formatear nombres de archivos y criterios
+        function formatCriterionTitle(title) {
+            if (!title) return '';
+            
+            // Buscar el patrón TEC.4.X.Y... al inicio de la cadena
+            // El patrón esperado: "TEC.4." seguido de números separados por puntos
+            // Ejemplo: "TEC.4.2.2. Fabricación de productos..."
+            const match = title.match(/^(TEC\.4\.[\d\.]+)/);
+            if (match) {
+                // Asegurarse de que termine con punto
+                let code = match[1];
+                if (!code.endsWith('.')) code += '.';
+                return code;
+            }
+            
+            // Si no coincide, devolver el título original formateado
+            // (por si acaso, aunque idealmente siempre debería coincidir)
+            return title;
+        }
+
+        function safeFileName(name) {
+            // Mantener tildes y caracteres especiales, solo eliminar caracteres problemáticos
+            return name
+                .replace(/[<>:"/\\|?*]/g, '') // Eliminar caracteres problemáticos para nombres de archivo
+                .replace(/\s+/g, ' ') // Reducir múltiples espacios a uno solo
+                .trim();
+        }
+
+        // Función para formatear nombres de estudiantes: "Apellido1 Apellido2, Nombre"
+        function formatStudentName(student) {
+            // Si tenemos givenName y familyName, los usamos
+            if (student.givenName && student.familyName) {
+                // familyName ya contiene "Apellido1 Apellido2"
+                return `${student.familyName}, ${student.givenName}`;
+            }
+            
+            // Si no, intentar extraer del nombre completo
+            const fullName = student.name || '';
+            const parts = fullName.trim().split(' ');
+            
+            if (parts.length <= 1) {
+                return parts[0] || '';
+            } else if (parts.length === 2) {
+                // Nombre Apellido1
+                return `${parts[1]}, ${parts[0]}`;
+            } else if (parts.length === 3) {
+                // Nombre Apellido1 Apellido2
+                return `${parts[1]} ${parts[2]}, ${parts[0]}`;
+            } else {
+                // 4 o más partes: Nombre (compuesto) Apellido1 Apellido2
+                const firstName = parts.slice(0, -2).join(' ');
+                const lastName1 = parts[parts.length - 2];
+                const lastName2 = parts[parts.length - 1];
+                return `${lastName1} ${lastName2}, ${firstName}`;
+            }
+        }
+
+        // Función para extraer el primer apellido (Apellido1) para ordenación
+        function getFirstLastName(student) {
+            // Si tenemos familyName, extraer el primer apellido (primera palabra)
+            if (student.familyName) {
+                return student.familyName.split(' ')[0];
+            }
+            
+            // Si no, intentar extraer del nombre completo
+            const fullName = student.name || '';
+            const parts = fullName.trim().split(' ');
+            
+            if (parts.length <= 1) {
+                return parts[0] || '';
+            } else if (parts.length === 2) {
+                // Nombre Apellido1
+                return parts[1];
+            } else if (parts.length === 3) {
+                // Nombre Apellido1 Apellido2
+                return parts[1];
+            } else {
+                // 4 o más partes: Nombre (compuesto) Apellido1 Apellido2
+                return parts[parts.length - 2];
+            }
+        }
+
+        function exportData() {
+            if (!classroomData) {
+                alert('Primero carga un archivo JSON para exportar datos.');
+                return;
+            }
+            
+            // Obtener opciones de exportación
+            const exportStudents = document.getElementById('exportStudents').checked;
+            const exportAssignments = document.getElementById('exportAssignments').checked;
+            const exportRubrics = document.getElementById('exportRubrics').checked;
+            const exportEvaluations = document.getElementById('exportEvaluations').checked;
+            const exportSubmissions = document.getElementById('exportSubmissions').checked;
+            const exportGrades = document.getElementById('exportGrades').checked;
+            
+            // Preparar datos para exportación
+            const exportData = {};
+            
+            if (exportStudents) {
+                exportData.students = processStudentsData();
+            }
+            
+            if (exportAssignments) {
+                exportData.assignments = processAssignmentsData();
+            }
+            
+            if (exportRubrics) {
+                exportData.rubrics = processRubricsData();
+            }
+            
+            if (exportEvaluations) {
+                exportData.evaluations = processEvaluationsData();
+            }
+            
+            if (exportSubmissions) {
+                exportData.submissions = processSubmissionsData();
+            }
+            
+            if (exportGrades) {
+                exportData.grades = processGradesData();
+            }
+            
+            // Exportar según el formato seleccionado
+            switch(exportFormat) {
+                case 'excel':
+                    exportToExcel(exportData);
+                    break;
+                case 'csv':
+                    exportToCSV(exportData);
+                    break;
+                case 'json':
+                    exportToJSON(exportData);
+                    break;
+            }
+        }
+
+        function processStudentsData() {
+            if (!classroomData.students) return [];
+            
+            return classroomData.students.map(student => ({
+                nombre: student.profile.name.fullName || student.profile.name,
+                email: student.profile.emailAddress,
+                evaluaciones_con_rubrica: rubricEvaluations.filter(e => e.student.email === student.profile.emailAddress).length
+            }));
+        }
+
+        function processAssignmentsData() {
+            if (!classroomData.posts) return [];
+            
+            return classroomData.posts
+                .filter(post => post.courseWork)
+                .map(post => ({
+                    titulo: post.courseWork.title,
+                    descripcion: post.courseWork.description ? 
+                        post.courseWork.description.replace(/<[^>]*>/g, '').substring(0, 100) + '...' : '',
+                    fecha_limite: post.courseWork.dueTime || 'Sin fecha',
+                    puntos_maximos: post.courseWork.maxPoints || 0,
+                    tipo: post.courseWork.workType,
+                    tiene_rubrica: post.courseWork.rubric ? 'Sí' : 'No',
+                    tema: post.topics ? post.topics.map(t => t.name).join(', ') : 'Sin tema',
+                    evaluaciones_con_rubrica: post.courseWork.submissions ? 
+                        post.courseWork.submissions.filter(s => s.draftRubricScore || s.assignedRubricScore).length : 0
+                }));
+        }
+
+        function processRubricsData() {
+            if (!classroomData.posts) return [];
+            
+            const rubrics = [];
+            classroomData.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.rubric) {
+                    post.courseWork.rubric.criterion.forEach(criterion => {
+                        const maxPoints = Math.max(...criterion.rating.map(r => r.points || 0));
+                        rubrics.push({
+                            tarea: post.courseWork.title,
+                            criterio: criterion.title || 'Sin título',
+                            descripcion: criterion.description || 'Sin descripción',
+                            niveles: criterion.rating ? criterion.rating.length : 0,
+                            puntos_maximos: maxPoints
+                        });
+                    });
+                }
+            });
+            
+            return rubrics;
+        }
+
+        function processEvaluationsData() {
+            if (rubricEvaluations.length === 0) return [];
+            
+            return rubricEvaluations.map(evaluation => {
+                // Datos principales
+                const evaluationData = {
+                    estudiante: evaluation.student.name,
+                    email: evaluation.student.email,
+                    tarea: evaluation.assignment.title,
+                    puntos_obtenidos: evaluation.totalObtained,
+                    puntos_maximos: evaluation.totalMax,
+                    porcentaje_total: evaluation.overallPercentage,
+                    calificacion_final: evaluation.finalGrade || 'No asignada'
+                };
+                
+                // Agregar detalles por criterio
+                evaluation.criterionDetails.forEach((criterion, index) => {
+                    evaluationData[`criterio_${index + 1}_nombre`] = criterion.title;
+                    evaluationData[`criterio_${index + 1}_puntos`] = criterion.obtainedPoints;
+                    evaluationData[`criterio_${index + 1}_maximo`] = criterion.maxPoints;
+                    evaluationData[`criterio_${index + 1}_porcentaje`] = criterion.percentage;
+                    evaluationData[`criterio_${index + 1}_nivel`] = criterion.performanceLevel;
+                });
+                
+                return evaluationData;
+            });
+        }
+
+        function processSubmissionsData() {
+            if (!classroomData.posts) return [];
+            
+            const submissions = [];
+            classroomData.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    post.courseWork.submissions.forEach(submission => {
+                        if (submission.student && submission.student.profile) {
+                            const hasRubricEvaluation = submission.draftRubricScore || submission.assignedRubricScore;
+                            
+                            submissions.push({
+                                estudiante: submission.student.profile.name.fullName || submission.student.profile.name,
+                                tarea: post.courseWork.title,
+                                estado: getStatusLabel(submission.state),
+                                calificacion: submission.assignedGrade || 'No calificado',
+                                puntos_maximos: post.courseWork.maxPoints || 10,
+                                evaluado_con_rubrica: hasRubricEvaluation ? 'Sí' : 'No'
+                            });
+                        }
+                    });
+                }
+            });
+            
+            return submissions;
+        }
+
+        function processGradesData() {
+            if (!classroomData.posts) return [];
+            
+            const grades = [];
+            classroomData.posts.forEach(post => {
+                if (post.courseWork && post.courseWork.submissions) {
+                    post.courseWork.submissions.forEach(submission => {
+                        if (submission.assignedGrade !== undefined && submission.student && submission.student.profile) {
+                            const percentage = post.courseWork.maxPoints > 0 ? 
+                                (submission.assignedGrade / post.courseWork.maxPoints * 100).toFixed(1) : 0;
+                            
+                            const hasRubricEvaluation = submission.draftRubricScore || submission.assignedRubricScore;
+                            
+                            grades.push({
+                                estudiante: submission.student.profile.name.fullName || submission.student.profile.name,
+                                tarea: post.courseWork.title,
+                                calificacion: submission.assignedGrade,
+                                puntos_maximos: post.courseWork.maxPoints || 10,
+                                porcentaje: percentage,
+                                evaluado_con_rubrica: hasRubricEvaluation ? 'Sí' : 'No'
+                            });
+                        }
+                    });
+                }
+            });
+            
+            return grades;
+        }
+
+        function exportToExcel(data) {
+            // Crear un nuevo libro de trabajo
+            const wb = XLSX.utils.book_new();
+            
+            // Agregar una hoja por cada categoría de datos
+            Object.keys(data).forEach(category => {
+                if (data[category].length > 0) {
+                    const ws = XLSX.utils.json_to_sheet(data[category]);
+                    XLSX.utils.book_append_sheet(wb, ws, category.substring(0, 31)); // Limitación de Excel
+                }
+            });
+            
+            // Generar nombre de archivo
+            const courseName = classroomData.name ? safeFileName(classroomData.name) : 'classroom_data';
+            const filename = `${courseName}_evaluaciones_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            
+            // Descargar archivo
+            XLSX.writeFile(wb, filename);
+            
+            alert(`Datos exportados a ${filename}`);
+        }
+
+        function exportToCSV(data) {
+            // Crear un archivo ZIP con múltiples CSV
+            alert('Exportación a CSV: Esta funcionalidad generaría múltiples archivos CSV. En esta versión, se recomienda usar Excel para múltiples hojas.');
+            
+            // Alternativa: exportar evaluaciones como CSV simple
+            if (data.evaluations && data.evaluations.length > 0) {
+                const csvContent = convertToCSV(data.evaluations);
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `evaluaciones_${new Date().toISOString().slice(0, 10)}.csv`;
+                link.click();
+            }
+        }
+
+        function exportToJSON(data) {
+            const jsonContent = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `classroom_evaluaciones_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            
+            alert('Datos exportados a JSON');
+        }
+
+        function convertToCSV(objArray) {
+            const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+            let str = '';
+            
+            // Encabezados
+            const headers = Object.keys(array[0]);
+            str += headers.join(',') + '\r\n';
+            
+            // Datos
+            for (let i = 0; i < array.length; i++) {
+                let line = '';
+                for (let j = 0; j < headers.length; j++) {
+                    if (line !== '') line += ',';
+                    line += JSON.stringify(array[i][headers[j]]);
+                }
+                str += line + '\r\n';
+            }
+            
+            return str;
+        }
+
+        // Funciones de exportación para evaluaciones específicas de tarea
+        function exportAssignmentToJSON() {
+            if (!currentAssignmentData || currentAssignmentData.length === 0) {
+                alert('No hay datos de evaluaciones para exportar.');
+                return;
+            }
+            
+            // Preparar datos estructurados simplificados
+            const exportData = {
+                nombreTarea: currentAssignmentTitle,
+                fechaExportacion: new Date().toISOString(),
+                evaluaciones: []
+            };
+            
+            // Ordenar evaluaciones por primer apellido (Apellido1)
+            const sortedEvaluations = [...currentAssignmentData].sort((a, b) => {
+                const lastNameA = getFirstLastName(a.student);
+                const lastNameB = getFirstLastName(b.student);
+                return lastNameA.localeCompare(lastNameB);
+            });
+            
+            // Procesar cada evaluación
+            sortedEvaluations.forEach(evaluation => {
+                const rowData = {
+                    ALUMNO: formatStudentName(evaluation.student)
+                };
+                
+                // Agregar cada criterio con su puntuación obtenida redondeada a centésimas
+                evaluation.criterionDetails.forEach((criterion, index) => {
+                    const formattedTitle = formatCriterionTitle(criterion.title);
+                    rowData[formattedTitle] = parseFloat(criterion.obtainedPoints.toFixed(2));
+                });
+                
+                exportData.evaluaciones.push(rowData);
+            });
+            
+            // Obtener criterios para incluir en metadatos
+            if (sortedEvaluations.length > 0) {
+                exportData.criterios = sortedEvaluations[0].criterionDetails.map(c => formatCriterionTitle(c.title));
+            }
+            
+            // Crear archivo JSON
+            const jsonContent = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonContent], { type: 'application/json' });
+            const link = document.createElement('a');
+            
+            // Usar safeFileName para conservar tildes
+            const safeName = safeFileName(currentAssignmentTitle);
+            link.download = `evaluaciones_${safeName}_${new Date().toISOString().slice(0,10)}.json`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            
+            alert('Datos exportados a JSON correctamente.');
+        }
+
+        function exportAssignmentToExcel() {
+            if (!currentAssignmentData || currentAssignmentData.length === 0) {
+                alert('No hay datos de evaluaciones para exportar.');
+                return;
+            }
+            
+            // Ordenar evaluaciones por primer apellido (Apellido1)
+            const sortedEvaluations = [...currentAssignmentData].sort((a, b) => {
+                const lastNameA = getFirstLastName(a.student);
+                const lastNameB = getFirstLastName(b.student);
+                return lastNameA.localeCompare(lastNameB);
+            });
+            
+            // Preparar datos para Excel simplificados
+            const excelData = [];
+            
+            // Para cada evaluación, crear una fila con datos simplificados
+            sortedEvaluations.forEach(evaluation => {
+                const rowData = {
+                    'Alumno': formatStudentName(evaluation.student)
+                };
+                
+                // Agregar cada criterio con su puntuación obtenida redondeada a centésimas
+                evaluation.criterionDetails.forEach((criterion, index) => {
+                    const formattedTitle = formatCriterionTitle(criterion.title);
+                    rowData[formattedTitle] = parseFloat(criterion.obtainedPoints.toFixed(2));
+                });
+                
+                excelData.push(rowData);
+            });
+            
+            // Crear hoja de Excel
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            
+            // Limitar el nombre de la hoja a 31 caracteres (límite de Excel)
+            const sheetName = currentAssignmentTitle.substring(0, 31);
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            // Generar archivo con nombre seguro que conserve tildes
+            const safeName = safeFileName(currentAssignmentTitle);
+            const fileName = `evaluaciones_${safeName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            alert('Datos exportados a Excel correctamente.');
+        }
+    </script>
+</body>
+</html>
