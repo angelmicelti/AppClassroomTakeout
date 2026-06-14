@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Classroom Data Manager</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Extrae datos de Google Classroom para calificar al alumnado">
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Classroom DM">
+    <meta name="application-name" content="Classroom DM">
+    <meta name="msapplication-TileColor" content="#1a73e8">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2988,6 +3007,31 @@
             XLSX.writeFile(wb, fileName);
             
             alert('Datos exportados a Excel correctamente.');
+        }
+    </script>
+
+    <!-- Registro del Service Worker para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registrado correctamente:', registration.scope);
+
+                        // Comprobar actualizaciones periódicamente
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    console.log('Nueva versión disponible. Recarga la página para actualizar.');
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.warn('Error al registrar el Service Worker:', error);
+                    });
+            });
         }
     </script>
 </body>
