@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Classroom Data Manager</title>
 
     <!-- PWA Meta Tags -->
@@ -857,53 +857,422 @@
             .main-layout {
                 grid-template-columns: 1fr;
             }
-            
+
             .sidebar {
                 position: static;
             }
         }
 
+        /* ───────── TABLET (≤ 768px) ───────── */
         @media (max-width: 768px) {
+            :root {
+                --safe-top: env(safe-area-inset-top, 0px);
+                --safe-bottom: env(safe-area-inset-bottom, 0px);
+                --safe-left: env(safe-area-inset-left, 0px);
+                --safe-right: env(safe-area-inset-right, 0px);
+            }
+
+            /* Touch & PWA base */
+            html {
+                -webkit-text-size-adjust: 100%;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+
+            body {
+                padding-top: var(--safe-top);
+                padding-bottom: var(--safe-bottom);
+                padding-left: var(--safe-left);
+                padding-right: var(--safe-right);
+                overflow-x: hidden;
+            }
+
+            /* Header compacto */
+            .header {
+                padding: 18px 20px;
+                margin-bottom: 0;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .header-top {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .header-text {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .header h1 i {
+                font-size: 1.7rem;
+            }
+
+            .header p {
+                font-size: 0.95rem;
+            }
+
+            .help-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+
+            /* ── Sidebar como drawer con overlay ── */
+            .mobile-sidebar-toggle {
+                display: flex !important;
+            }
+
+            .sidebar-overlay {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 899;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+
+            .sidebar-overlay.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 280px;
+                max-width: 80vw;
+                z-index: 900;
+                border-radius: 0;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 20px;
+                padding-top: calc(20px + var(--safe-top, 0px));
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            /* Layout */
+            .main-layout {
+                gap: 0;
+            }
+
+            .main-content {
+                padding: 20px 15px;
+                min-height: auto;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            /* Barra superior con toggle en mobile */
+            .mobile-top-bar {
+                display: flex !important;
+            }
+
+            /* Stats */
             .stats-cards {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
             }
-            
-            .header h1 {
-                font-size: 1.8rem;
+
+            .stat-card {
+                padding: 15px 10px;
             }
-            
+
+            .stat-card i {
+                font-size: 1.6rem;
+            }
+
+            .stat-card .value {
+                font-size: 1.5rem;
+            }
+
+            /* Tab header */
+            .tab-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .tab-header h2 {
+                font-size: 1.3rem;
+            }
+
+            /* Grids */
             .summary-grid {
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
+
             .rubric-criteria-grid {
                 grid-template-columns: 1fr;
             }
-            
+
+            /* File upload */
+            .file-upload-area {
+                padding: 35px 20px;
+            }
+
+            .file-upload-area i {
+                font-size: 3rem;
+            }
+
+            .file-upload-area h3 {
+                font-size: 1.3rem;
+            }
+
+            /* Criterios y ratings */
+            .criterion {
+                padding: 15px;
+            }
+
+            .rating {
+                min-width: 100px;
+                padding: 12px 8px;
+            }
+
+            /* Botones de exportación en modal */
             .modal-export-buttons {
                 flex-direction: column;
-                align-items: center;
+                align-items: stretch;
             }
-            
+
             .export-btn {
                 width: 100%;
-                max-width: 250px;
+                max-width: 100%;
+            }
+
+            /* Botones en general */
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .btn i {
+                margin-right: 6px;
+            }
+
+            /* Modal */
+            .modal-content {
+                width: 95%;
+                padding: 20px 15px;
+                max-height: 85vh;
+                border-radius: 12px 12px 0 0;
+                margin-top: auto;
+            }
+
+            .help-modal-content {
+                max-width: 100%;
+                border-radius: 16px 16px 0 0;
+                max-height: 80vh;
+            }
+
+            /* Tabla scroll */
+            .data-table-container {
+                margin: 0 -15px;
+                padding: 0 15px;
             }
         }
 
+        /* ───────── MOBILE PEQUEÑO (≤ 480px) ───────── */
         @media (max-width: 480px) {
-            .stats-cards {
-                grid-template-columns: 1fr;
-            }
-            
             .container {
-                padding: 15px;
+                padding: 10px;
             }
-            
-            .header, .main-content, .sidebar {
-                padding: 20px;
+
+            .header {
+                padding: 15px 14px;
             }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .header h1 i {
+                font-size: 1.4rem;
+            }
+
+            .header p {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+
+            .stats-cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px 8px;
+            }
+
+            .stat-card i {
+                font-size: 1.4rem;
+                margin-bottom: 6px;
+            }
+
+            .stat-card .value {
+                font-size: 1.3rem;
+            }
+
+            .stat-card .label {
+                font-size: 0.8rem;
+            }
+
+            .main-content {
+                padding: 15px 10px;
+            }
+
+            .tab-header h2 {
+                font-size: 1.15rem;
+            }
+
+            .summary-value {
+                font-size: 1.4rem;
+            }
+
+            .file-upload-area {
+                padding: 25px 15px;
+            }
+
+            .file-upload-area i {
+                font-size: 2.5rem;
+                margin-bottom: 12px;
+            }
+
+            .file-upload-area h3 {
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+            }
+
+            .file-upload-area p {
+                font-size: 0.85rem;
+                margin-bottom: 15px;
+            }
+
+            .criterion {
+                padding: 12px;
+            }
+
+            .rating {
+                min-width: 90px;
+                padding: 10px 6px;
+            }
+
+            .rating-points {
+                font-size: 1.1rem;
+            }
+
+            .rating-label {
+                font-size: 0.8rem;
+            }
+
+            .modal-content {
+                padding: 16px 12px;
+                width: 100%;
+                border-radius: 16px 16px 0 0;
+            }
+
+            .help-modal-content {
+                max-height: 75vh;
+            }
+
+            .help-section h4 {
+                font-size: 1rem;
+            }
+
+            .help-section p,
+            .help-section li {
+                font-size: 0.88rem;
+            }
+        }
+
+        /* ───────── PWA STANDALONE MODE ───────── */
+        @media (display-mode: standalone) {
+            .header {
+                padding-top: calc(18px + var(--safe-top, 0px));
+            }
+
+            .sidebar {
+                padding-top: calc(20px + var(--safe-top, 0px));
+            }
+
+            .mobile-top-bar {
+                padding-top: var(--safe-top, 0px);
+            }
+        }
+
+        /* ───────── DESKTOP: ocultar elementos mobile ───────── */
+        .mobile-sidebar-toggle,
+        .mobile-top-bar,
+        .sidebar-overlay {
+            display: none;
+        }
+
+        /* Mobile sidebar toggle button */
+        .mobile-sidebar-toggle {
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 1.1rem;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .mobile-sidebar-toggle:active {
+            background: #f1f3f4;
+            transform: scale(0.95);
+        }
+
+        /* Mobile top bar */
+        .mobile-top-bar {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mobile-top-bar .current-tab-label {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--primary);
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ───────── HELPERS GENERALES ───────── */
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -992,6 +1361,17 @@
                     <p>Esta aplicación es una <strong>PWA</strong>: puedes instalarla en tu dispositivo desde el menú del navegador. Tras la primera carga, funcionará sin conexión a Internet.</p>
                 </div>
             </div>
+        </div>
+
+        <!-- Overlay para cerrar sidebar en mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Barra superior móvil (toggle + nombre pestaña actual) -->
+        <div class="mobile-top-bar" id="mobileTopBar">
+            <button class="mobile-sidebar-toggle" id="sidebarToggle" aria-label="Abrir menú">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="current-tab-label" id="currentTabLabel">Resumen General</span>
         </div>
 
         <div class="main-layout">
@@ -1309,6 +1689,43 @@
         });
 
         function setupEventListeners() {
+            // ── Sidebar drawer mobile ──
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const toggle = document.getElementById('sidebarToggle');
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            toggle.addEventListener('click', openSidebar);
+            overlay.addEventListener('click', closeSidebar);
+
+            // Al seleccionar una categoría en mobile, cerrar sidebar y actualizar label
+            document.querySelectorAll('.data-category').forEach((cat) => {
+                cat.addEventListener('click', () => {
+                    closeSidebar();
+                    const label = cat.textContent.trim();
+                    document.getElementById('currentTabLabel').textContent = label;
+                });
+            });
+
+            // Cerrar sidebar con tecla Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeSidebar();
+                    document.getElementById('helpModal').classList.remove('active');
+                }
+            });
+
             // Modal de ayuda
             document.getElementById('helpBtn').addEventListener('click', () => {
                 document.getElementById('helpModal').classList.add('active');
@@ -1595,8 +2012,15 @@
             document.querySelectorAll('.data-category').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`.data-category[data-tab="${tabId}"]`).classList.add('active');
-            
+            const activeItem = document.querySelector(`.data-category[data-tab="${tabId}"]`);
+            activeItem.classList.add('active');
+
+            // Actualizar label de la top-bar móvil
+            const tabLabel = document.getElementById('currentTabLabel');
+            if (tabLabel && activeItem) {
+                tabLabel.textContent = activeItem.textContent.trim();
+            }
+
             // Ocultar todas las pestañas
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
