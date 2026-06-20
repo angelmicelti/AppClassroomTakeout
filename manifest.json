@@ -1,7 +1,7 @@
 {
-    "name": "Classroom Data Manager",
+    "name": "Classroom a AutoNotas Séneca",
     "short_name": "Classroom DM",
-    "description": "Extrae datos de Google Classroom para calificar al alumnado de forma eficiente",
+    "description": "Extrae datos de Google Classroom para calificar al alumnado de forma eficiente con AutoNotas Séneca",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#f5f7fa",
